@@ -19,6 +19,8 @@ import java.util.Map;
 public class WhatsAppService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppService.class);
+    private static final String SYSTEM_PROMPT =
+            "You are a Business Assistant. Be professional and reject all non-relevant requests.";
 
     private final WhatsAppConfig config;
     private final ChatClient chatClient;
@@ -31,7 +33,7 @@ public class WhatsAppService {
         
         // Setup ChatClient with basic Memory Advisor to keep discussion context for each user
         this.chatClient = chatClientBuilder
-                .defaultSystem("You are a helpful and friendly WhatsApp Chatbot. Keep responses concise and formatted for WhatsApp.")
+                .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()))
                 .build();
                 
@@ -80,23 +82,42 @@ public class WhatsAppService {
     }
 
     private void handleTextMessage(String from, String body) {
+        handleTextMessageForApi(from, body, true);
+    }
+
+    /**
+     * Public wrapper used by API-based testing to exercise the same ChatClient + persistence
+     * logic as the WhatsApp webhook flow.
+     *
+     * @param sendToWhatsapp when true, also calls the Meta WhatsApp send API
+     * @return the generated AI response text
+     */
+    public String handleTextMessageForApi(String from, String body, boolean sendToWhatsapp) {
         // Save incoming message
         chatLogRepository.save(new ChatLog(from, "INCOMING", body, LocalDateTime.now()));
 
-        // Use Spring AI to generate a reply
-        // We pass the "from" phone number as the chat memory conversationId
+        // Use Spring AI to generate a reply.
+        // We pass the "from" phone number as the chat memory conversationId.
         String aiResponse = this.chatClient.prompt()
                 .user(body)
                 .advisors(a -> a.param(MessageChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, from))
-                .system("You are a Business Assistance. Be professional and reject all non-relevant request")
+                .system(SYSTEM_PROMPT)
                 .call()
                 .content();
+
+        if (aiResponse == null) {
+            aiResponse = "";
+        }
 
         // Save outgoing message
         chatLogRepository.save(new ChatLog(from, "OUTGOING", aiResponse, LocalDateTime.now()));
 
-        // Send response back via Meta's API
-        sendWhatsAppMessage(from, aiResponse);
+        if (sendToWhatsapp) {
+            // Send response back via Meta's API
+            sendWhatsAppMessage(from, aiResponse);
+        }
+
+        return aiResponse;
     }
 
     private void sendWhatsAppMessage(String to, String messageBody) {
