@@ -11,6 +11,8 @@ public class WhatsAppConfig {
     private String accessToken;
     private String phoneNumberId;
     private String apiUrl;
+    private String appSecret;
+    private boolean signatureVerificationEnabled = false;
 
     public String getVerifyToken() {
         return verifyToken;
@@ -42,5 +44,21 @@ public class WhatsAppConfig {
 
     public void setApiUrl(String apiUrl) {
         this.apiUrl = apiUrl;
+    }
+
+    public String getAppSecret() {
+        return appSecret;
+    }
+
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
+    }
+
+    public boolean isSignatureVerificationEnabled() {
+        return signatureVerificationEnabled;
+    }
+
+    public void setSignatureVerificationEnabled(boolean signatureVerificationEnabled) {
+        this.signatureVerificationEnabled = signatureVerificationEnabled;
     }
 }

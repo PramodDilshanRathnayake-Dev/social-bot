@@ -7,6 +7,11 @@ Spring Boot WhatsApp webhook chatbot that uses Spring AI (OpenAI-compatible) to 
 - Exposes a Meta WhatsApp webhook at `GET /webhook` (verification) and `POST /webhook` (incoming messages).
 - For incoming text messages, generates a response via Spring AI `ChatClient` and sends it back through the WhatsApp Cloud API.
 - Persists incoming/outgoing messages to PostgreSQL table `chat_logs`.
+- Implements a deterministic routing strategy:
+  - `hi` -> static reply
+  - known question -> answer from DB (`faq_entries`)
+  - otherwise -> AI reply
+- Supports an order flow with explicit confirmation and admin notification on submission.
 
 ## Prerequisites
 
@@ -16,6 +21,10 @@ Spring Boot WhatsApp webhook chatbot that uses Spring AI (OpenAI-compatible) to 
 ## Configuration
 
 This project reads configuration from Spring properties and environment variables.
+
+### Example Config File
+
+See `application.example.yml` for a safe template (no secrets) showing all required settings.
 
 ### Sample `application.properties`
 
@@ -44,6 +53,10 @@ whatsapp.meta.verify-token=${WHATSAPP_VERIFY_TOKEN:my_secure_token}
 whatsapp.meta.access-token=${WHATSAPP_ACCESS_TOKEN:}
 whatsapp.meta.phone-number-id=${WHATSAPP_PHONE_NUMBER_ID:}
 whatsapp.meta.api-url=${WHATSAPP_META_API_URL:https://graph.facebook.com/v25.0}
+
+# Optional: enable webhook signature verification (recommended for production)
+whatsapp.meta.app-secret=${WHATSAPP_META_APP_SECRET:}
+whatsapp.meta.signature-verification-enabled=${WHATSAPP_META_SIGNATURE_VERIFICATION_ENABLED:false}
 ```
 
 ### Database
@@ -109,6 +122,10 @@ The app listens on port `8080` by default.
 ```bash
 ./mvnw test
 ```
+
+## CI
+
+GitHub Actions runs `./mvnw test` on pushes and pull requests (see `.github/workflows/ci.yml`).
 
 ## Webhook Endpoints
 

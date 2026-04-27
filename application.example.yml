@@ -1,0 +1,39 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/bot_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+
+  ai:
+    openai:
+      api-key: ${SPRING_AI_OPENAI_API_KEY:}
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.groq.com/openai}
+      chat:
+        options:
+          model: ${SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL:llama-3.3-70b-versatile}
+
+whatsapp:
+  meta:
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:change-me}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    api-url: ${WHATSAPP_META_API_URL:https://graph.facebook.com/v25.0}
+    app-secret: ${WHATSAPP_META_APP_SECRET:}
+    signature-verification-enabled: ${WHATSAPP_META_SIGNATURE_VERIFICATION_ENABLED:false}
+
+whatzzi:
+  admin-number: ${WHATZZI_ADMIN_NUMBER:+94717465220}
+  hi-reply: ${WHATZZI_HI_REPLY:Hello! How can we help you with a WhatsApp chatbot today?}
+  packages:
+    - code: BASIC
+      name: Basic Bot
+      price-minor: 15000
+      currency: LKR
+      description: Standard WhatsApp chatbot
+
